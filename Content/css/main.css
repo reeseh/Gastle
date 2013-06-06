@@ -1,0 +1,64 @@
+#test { border: 1px solid #eee; color: #eee; }
+
+@font-face {
+    font-family: 'Droid';
+    src: url('fonts/droid.ttf')format("truetype");
+}
+
+body { background: #000; }
+
+canvas { margin: 10px auto; display: block; width: 650px; }
+
+div#Game {
+	width: 650px;
+	margin: 0 auto;
+	border: 1px solid #000;
+}
+
+p#TitleBlock {
+	text-align: center !important;
+	height: 50px;
+	color: #FFF;
+	font-family: arial, sans-serif;
+	font-size: 20px;
+	width: inherit;
+	margin: 0 auto;
+}
+
+div#MessageCenter {
+	background: #000;
+	width: 650px;
+	padding: 5px 10px;
+	height: 150px;
+	overflow: hidden;
+}
+
+div#MessageCenter p {
+	font-family: 'Droid', arial, sans-serif;
+	font-size: 18px;
+	color: #EEE;
+	margin: 0 0 5px 0;
+}
+
+#Splash {
+	position: absolute;
+	top: 125px;
+	background: #333;
+	border: 1px solid #FFF;
+	padding; 10p;
+	width: 350px;
+	height: 250px;
+	margin-left: 150px;
+}
+
+#Splash h2 {
+	color: #FFF;
+	font-family: 'Droid', arial, sans-serif;
+	font-style: italic;
+	font-size: 50px;
+	text-align: center;
+}
+
+p {
+	text-align: center;
+}
