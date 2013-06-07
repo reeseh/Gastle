@@ -70,6 +70,7 @@ window.DependentScripts = ['Content/js/lib/pubsub.js', 'Content/js/game/DOM.js',
 
 	var _bindEvents = function() {
 		_self.Bus.Global().Subscribe(Gastle.Event.GameEvent, 'ENGINE', _writeEvent);
+		_self.Bus.Global().Subscribe(Gastle.Event.HeroDied, 'ENGINE', _gameOver);
 
 		window.addEventListener('keydown', _keyDown, false);
 		window.addEventListener('keyup', _keyUp, false);
@@ -93,6 +94,7 @@ window.DependentScripts = ['Content/js/lib/pubsub.js', 'Content/js/game/DOM.js',
 		var i = entities.length;
 		while(i--) { entities[i].RemoveComponents(); }
 		_self.Entities = [];
+		_self.Bus.ClearStore();
 	};
 
 	var _loadLevels = function() {
@@ -101,6 +103,12 @@ window.DependentScripts = ['Content/js/lib/pubsub.js', 'Content/js/game/DOM.js',
 		};
 
 		Utility.Ajax.get('Content/js/game/Levels.js', callback);
+	};
+
+	var _gameOver = function() {
+		_self.Pause();
+		_clearEntities();
+		_self.DOM.LoadGameOverScreen();
 	};
 
 	var _keyDown = function(e) { 
@@ -122,7 +130,8 @@ Gastle.Event = {
 	KeyUp : 'KEYUP',
 	LostFocus : 'LOSTFOCUS',
 	GameEvent : 'GAMEEVENT',
-	Collision : 'COLLISION'
+	Collision : 'COLLISION',
+	HeroDied : 'HERODIED'
 };
 
 Gastle.Key = {
@@ -132,6 +141,10 @@ Gastle.Key = {
 	Right: 39,
 	Shoot: 32,
 	Enter: 13
+};
+
+Gastle.Flag = {
+	Stun: 'STUN'
 };
 
 require(window.DependentScripts, function() { window.Gastle.Load(); });

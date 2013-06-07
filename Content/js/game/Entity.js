@@ -2,14 +2,30 @@ window.Entity = {};
 
 Entity.Func = {
 	AddComponent : function(entity, component) {
-		entity.Components.push(component);
+		entity.Components[component.Name] = component;
 	},
 	RemoveComponents : function(entity) {
-		var i = entity.Components.length;
-		while(i--) {
-			entity.Components[i].Unregister();
-			entity.Components.splice(i, 1);
+		for(var name in entity.Components)
+		{
+			var idx = entity.Components.indexOf(name);
+			entity.Components[idx].Unregister();
+			entity.Components.splice(idx, 1);
 		}
+	},
+	HasFlag: function(entity, flag) {
+		return entity.Flags.indexOf(flag) > -1;
+	},
+	AddFlag: function(entity, flag) {
+		entity.Flags.push(flag);
+	},
+	RemoveFlag: function(entity, flag) {
+		var idx = entity.Flags.indexOf(flag);
+		if(idx > -1)
+			entity.Flags.splice(idx, 1);
+	},
+	RemoveSelf: function(entity) {
+		var idx = Gastle.Entities.indexOf(entity.Id);
+		Gastle.Entities.splice(idx, 1);
 	}
 };
 
@@ -21,6 +37,7 @@ Entity.Base = function(entity, type, x, y, width, height) {
 	entity.Width = width;
 	entity.Height = height;
 	entity.Components = [];
+	entity.Flags = [];
 
 	this.Init = function() {
 		entity.Id = Utility.NewGuid();
@@ -68,7 +85,9 @@ Entity.Hero = function(speed) {
 
 		Entity.Func.AddComponent(_self, new Component.Display(_self.Id, 'Content/img/hero.png'));
 		Entity.Func.AddComponent(_self, new Component.Move(_self.Id, speed));
+		Entity.Func.AddComponent(_self, new Component.Life(_self));
 		Entity.Func.AddComponent(_self, new Component.Collidable(_self, _self.X, _self.Y, _self.Width, _self.Height));
+		Entity.Func.AddComponent(_self, new Component.Stun(_self.Id));
 	};
 
 	this.Init(speed);
@@ -84,8 +103,9 @@ Entity.Villain = function(speed) {
 		Entity.Base(_self, 'VILLAIN', x, y, 26, 46);
 
 		Entity.Func.AddComponent(_self, new Component.Display(_self.Id, 'Content/img/monster.png'));
-		Entity.Func.AddComponent(_self, new Component.Collidable(_self, _self.X, _self.Y, _self.Width, _self.Height));
 		Entity.Func.AddComponent(_self, new Component.AutoMove(_self.Id, speed));
+		Entity.Func.AddComponent(_self, new Component.Life(_self));
+		Entity.Func.AddComponent(_self, new Component.Collidable(_self, _self.X, _self.Y, _self.Width, _self.Height));
 	};
 
 	this.Init(speed);

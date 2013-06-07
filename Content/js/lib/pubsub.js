@@ -80,11 +80,11 @@ window.Bus = function() {
 		return this;
 	};
 
-	this.Clear = function() {
+	this.ClearStore = function() {
 		_store = {
 			Entity: [],
 			Global: []
 		};
 	};
-	this.Clear();
+	this.ClearStore();
 };
