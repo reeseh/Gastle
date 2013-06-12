@@ -4,7 +4,7 @@
         "Name": "1",
         "Background": "Content/img/background_plain.gif",
         "NumberOfVillains": 1,
-        "VillainSpeed": 0.1,
+        "VillainSpeed": 0.4,
         "HeroSpeed": 0.5,
         "Walls" : [
                     {

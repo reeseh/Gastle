@@ -59,7 +59,7 @@ Component.Display = function(entityId, imgSrc) {
 		ctx.drawImage(_self.Image, entity.X, entity.Y);
 		ctx.restore();
 	};
- 	
+
 	this.Unregister = function() {
 		_self.GlobalEvent(Gastle.Event.NewFrame).Unsubscribe(_self.RenderImage);
 	};
@@ -76,7 +76,6 @@ Component.Move = function(entityId, speed) {
 
 	this.Init = function(entityId) {
 		Component.Base(_self, 'DISPLAY', entityId);
-
 		_self.GlobalEvent(Gastle.Event.NewFrame).Subscribe(_self.Move);
 	};
 
@@ -146,6 +145,7 @@ Component.AutoMove = function(entityId, speed) {
 
 	this.Unregister = function() {
 		_self.GlobalEvent(Engine.Event.NewFrame).Unsubscribe(_self.Move);
+		_self.EntityEvent(Gastle.Event.Collision).Unsubscribe(_self.ChangeDirection);
 	};
 
 	this.Init(entityId);
@@ -214,7 +214,8 @@ Component.Collidable = function(entity, x, y, width, height) {
 
 		var e2 = null;
 		for(var id in entities) {
-			if(id == _self.EntityId) continue;
+			if(id == _self.EntityId || Gastle.Entities[_self.EntityId] == undefined) continue;
+			
 			e2 = entities[id];
 
 			if(e2.Collidable !== true) continue;
@@ -223,18 +224,53 @@ Component.Collidable = function(entity, x, y, width, height) {
 			if(!isCollision) continue;
 
 			var mtv = _self.MinimumTranslationVector(entity.AABB, entities[id].AABB);
-			entity.X += mtv.X;
-			entity.Y += mtv.Y;
 
 			var bounceBack = e2.BounceBack;
+			if(bounceBack == undefined)
+				bounceBack = 1;
 
-			if (mtd.x < 0) e.position.x += mtd.x - bounceBack;
-			else if (mtd.x > 0) e.position.x += mtd.x + bounceBack;
-			else if (mtd.y < 0) e.position.y += mtd.y - bounceBack;
-			else if (mtd.y > 0) e.position.y += mtd.y + bounceBack;
+			if (mtv.X < 0) entity.X += mtv.X - bounceBack;
+			else if (mtv.X > 0) entity.X += mtv.X + bounceBack;
+			else if (mtv.Y < 0) entity.Y += mtv.Y - bounceBack;
+			else if (mtv.Y > 0) entity.Y += mtv.Y + bounceBack;
 
 			Gastle.Bus.Entity(_self.EntityId).Publish(Gastle.Event.Collision, { Entity: e2 });
 		}
+	};
+
+	this.UpdateBox = function(entity) {
+		entity.AABB.X = entity.X + _self.XDiff;
+		entity.AABB.Y = entity.Y + _self.YDiff;
+
+		if(Gastle.Debug !== true) return;
+
+		var ctx = Gastle.CanvasContext();
+		ctx.beginPath();
+		ctx.fillStyle = "rgb(255,50,50)";
+		ctx.rect(entity.AABB.X, entity.AABB.Y, entity.AABB.Width, entity.AABB.Height);
+		ctx.stroke();
+	};
+
+	this.Unregister = function() {
+		var entity = Gastle.Entities[_self.EntityId];
+
+		entity.Collidable = undefined;
+		entity.AABB = undefined;
+
+		_self.GlobalEvent(Gastle.Event.NewFrame).Unsubscribe(_self.RenderBox);
+	};
+
+	entity.Collidable = true;
+	entity.AABB = new AABB(x, y, width, height);
+
+	this.HasCollision = function(box1, box2) {
+		var box1C = box1.GetCenter();
+		var box2C = box2.GetCenter();
+
+		if (Math.abs(box1C.X - box2C.X) > (box1.Width / 2 + box2.Width / 2)) return false;
+		if (Math.abs(box1C.Y - box2C.Y) > (box1.Height / 2 + box2.Height / 2)) return false;
+
+		return true;
 	};
 
 	this.MinimumTranslationVector = function(box1, box2) {
@@ -269,41 +305,6 @@ Component.Collidable = function(entity, x, y, width, height) {
 		return mtd;
 	};
 
-	this.UpdateBox = function(entity) {
-		entity.AABB.X = entity.X + _self.XDiff;
-		entity.AABB.Y = entity.Y + _self.YDiff;
-
-		if(Gastle.Debug !== true) return;
-
-		var ctx = Gastle.CanvasContext();
-		ctx.beginPath();
-		ctx.fillStyle = "rgb(255,50,50)";
-		ctx.rect(entity.AABB.X, entity.AABB.Y, entity.AABB.Width, entity.AABB.Height);
-		ctx.stroke();
-	};
-
-	this.Unregister = function() {
-		var entity = entities[_self.EntityId];
-
-		entity.Collidable = undefined;
-		entity.AABB = undefined;
-
-		_self.GlobalEvent(Gastle.Event.NewFrame).Unsubscribe(_self.RenderBox);
-	};
-
-	entity.Collidable = true;
-	entity.AABB = new AABB(x, y, width, height);
-
-	this.HasCollision = function(box1, box2) {
-		var box1C = box1.GetCenter();
-		var box2C = box2.GetCenter();
-
-		if (Math.abs(box1C.X - box2C.X) > (box1.Width / 2 + box2.Width / 2)) return false;
-		if (Math.abs(box1C.Y - box2C.Y) > (box1.Height / 2 + box2.Height / 2)) return false;
-
-		return true;
-	};
-
 	this.Init(entity);
 };
 
@@ -328,29 +329,31 @@ Component.Life = function(entity) {
 			_self.Die(entity);
 	};
 
-	this.Die = function() {
+	this.Die = function(entity) {
 		Entity.Func.RemoveComponents(entity);
 		_self.WriteGameEvent(entity.Type + ' died');
 
 		if(entity.Type == 'HERO')
-			_self.Global().Publish(Gastle.Event.HeroDied, {});
+			Gastle.Bus.Global().Publish(Gastle.Event.HeroDied, {});
 	};
 
 	this.Unregister = function() {
 		var entity = Gastle.Entities[_self.EntityId];
 		entity.Health = undefined;
 
-		_self.EntityEvent(Engine.Event.Collision).Unsubscribe(_self.TakeDamage);
+		_self.EntityEvent(Gastle.Event.Collision).Unsubscribe(_self.TakeDamage);
 	};
 
 	this.Init(entity.Id);
 };
 
 Component.Attack = function(entity, damage, bounceBack) {
+	var _self = this;
+
 	entity.Damage = damage;
 	entity.BounceBack = bounceBack;
 
-	this.Init = function() {
+	this.Init = function(entityId) {
 		Component.Base(_self, 'ATTACK', entityId);
 	};
 

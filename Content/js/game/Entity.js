@@ -7,9 +7,8 @@ Entity.Func = {
 	RemoveComponents : function(entity) {
 		for(var name in entity.Components)
 		{
-			var idx = entity.Components.indexOf(name);
-			entity.Components[idx].Unregister();
-			entity.Components.splice(idx, 1);
+			entity.Components[name].Unregister();
+			delete entity.Components[name];
 		}
 	},
 	HasFlag: function(entity, flag) {
@@ -24,8 +23,9 @@ Entity.Func = {
 			entity.Flags.splice(idx, 1);
 	},
 	RemoveSelf: function(entity) {
-		var idx = Gastle.Entities.indexOf(entity.Id);
-		Gastle.Entities.splice(idx, 1);
+		// var idx = Gastle.Entities.indexOf(entity.Id);
+		// Gastle.Entities.splice(idx, 1);
+		delete Gastle.Entities[entity.Id];
 	}
 };
 
@@ -84,10 +84,11 @@ Entity.Hero = function(speed) {
 		Entity.Base(_self, 'HERO', x, y, 26, 46);
 
 		Entity.Func.AddComponent(_self, new Component.Display(_self.Id, 'Content/img/hero.png'));
-		Entity.Func.AddComponent(_self, new Component.Move(_self.Id, speed));
 		Entity.Func.AddComponent(_self, new Component.Life(_self));
+		Entity.Func.AddComponent(_self, new Component.Move(_self.Id, speed));
 		Entity.Func.AddComponent(_self, new Component.Collidable(_self, _self.X, _self.Y, _self.Width, _self.Height));
 		Entity.Func.AddComponent(_self, new Component.Stun(_self.Id));
+		Entity.Func.AddComponent(_self, new Component.Attack(_self, 5, 0));
 	};
 
 	this.Init(speed);
@@ -103,9 +104,10 @@ Entity.Villain = function(speed) {
 		Entity.Base(_self, 'VILLAIN', x, y, 26, 46);
 
 		Entity.Func.AddComponent(_self, new Component.Display(_self.Id, 'Content/img/monster.png'));
-		Entity.Func.AddComponent(_self, new Component.AutoMove(_self.Id, speed));
 		Entity.Func.AddComponent(_self, new Component.Life(_self));
+		Entity.Func.AddComponent(_self, new Component.AutoMove(_self.Id, speed));
 		Entity.Func.AddComponent(_self, new Component.Collidable(_self, _self.X, _self.Y, _self.Width, _self.Height));
+		Entity.Func.AddComponent(_self, new Component.Attack(_self, 50, 5));
 	};
 
 	this.Init(speed);

@@ -24,7 +24,8 @@ Utility.LoadDOMElement = function(tag, id, parent, html) {
 };
 
 Utility.RemoveDOMElement = function(el) {
-	el.parentNode.removeChild(el);
+	if(!Utility.IsEmpty(el.parentNode))
+		el.parentNode.removeChild(el);
 };
 
 
